@@ -3,6 +3,10 @@
 // Accepts n (int) as command-line argument; and writes to standard output all Fibonacci numbers
 // below n.
 
+/*
+ *
+ */
+
 import java.lang.Integer;
 import java.lang.System;
 

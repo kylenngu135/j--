@@ -11,15 +11,30 @@ enum TokenKind {
     EOF(""),
 
     // Reserved words.
-    ABSTRACT("abstract"), BOOLEAN("boolean"), CHAR("char"), CLASS("class"), ELSE("else"),
-    EXTENDS("extends"), IF("if"), IMPORT("import"), INSTANCEOF("instanceof"), INT("int"),
-    NEW("new"), PACKAGE("package"), PRIVATE("private"), PROTECTED("protected"),
-    PUBLIC("public"), RETURN("return"), STATIC("static"), SUPER("super"), THIS("this"),
-    VOID("void"), WHILE("while"),
+    ABSTRACT("abstract"), ASSERT("assert"), BOOLEAN("boolean"), BREAK("break"), 
+    BYTE("byte"), CASE("case"), CATCH("catch"), CHAR("char"), CLASS("class"), 
+    CONST("const"), CONTINUE("continue"), DEFAULT("default"), DO("do"), 
+    DOUBLE("double"), ELSE("else"),ENUM("enum"), EXTENDS("extends"), 
+    FINAL("final"), FINALLY("finally"), FLOAT("float"), FOR("for"), GOTO("goto"), 
+    IF("if"), IMPLEMENTS("implements"), IMPORT("import"), INSTANCEOF("instanceof"), 
+    INT("int"), INTERFACE("interface"), LONG("long"), NATIVE("native"), NEW("new"), 
+    PACKAGE("package"), PRIVATE("private"), PROTECTED("protected"), PUBLIC("public"), 
+    RETURN("return"), SHORT("short"), STATIC("static"), STRICTFP("strictfp"), 
+    SUPER("super"), SWITCH("switch"), SYNCHRONIZED("synchronized"), THIS("this"), 
+    THROW("throw"), THROWS("throws"), TRANSIENT("transient"), TRY("try"), VOID("void"), 
+    VOLATILE("volatile"), WHILE("while"), OPEN("open"), MODULE("module"), 
+    REQUIRES("requires"), EXPORTS("exports"), OPENS("opens"), TO("to"), USES("uses"), 
+    PROVIDES("provides"), WITH("with"), TRANSITIVE("transitive"),
 
     // Operators.
-    ASSIGN("="), DEC("--"), EQUAL("=="), GT(">"), INC("++"), LAND("&&"), LE("<="), LNOT("!"),
-    MINUS("-"), PLUS("+"), PLUS_ASSIGN("+="), STAR("*"),
+    ASSIGN("="), DEC("--"), EQUAL("=="), GT(">"), GE(">="),  NE("!="), INC("++"), 
+    LAND("&&"), OR("||"), LT("<"), LE("<="), LNOT("!"), TERQ("?"), TERC(":"), 
+    LAMBDA("->"), MINUS("-"), MINUS_ASSIGN("-="), PLUS("+"), PLUS_ASSIGN("+="), 
+    STAR("*"), STAR_ASSIGN("*="), DIV("/"), DIV_ASSIGN("/="), MOD("%"), 
+    MOD_ASSIGN("%="), BAND("&"), BAND_ASSIGN("&="), BOR("|"), BOR_ASSIGN("|="), 
+    LSHFT(">>"), LSHFT_ASSIGN(">>="), RSHFT("<<"), RSHFT_ASSIGN("<<="), XOR("^"), 
+    XOR_ASSIGN("^="), URSHFT(">>>"), URSHFT_ASSIGN(">>>="), COMP("~"),
+
 
     // Separators.
     COMMA(","), DOT("."), LBRACK("["), LCURLY("{"), LPAREN("("), RBRACK("]"), RCURLY("}"),
@@ -31,6 +46,9 @@ enum TokenKind {
     // Literals.
     CHAR_LITERAL("<CHAR_LITERAL>"), FALSE("false"), INT_LITERAL("<INT_LITERAL>"), NULL("null"),
     STRING_LITERAL("<STRING_LITERAL>"), TRUE("true");
+
+    // Double Literals
+    
 
     // The token kind's string representation.
     private String image;

@@ -49,29 +49,65 @@ class Scanner {
         // Keywords in j--
         reserved = new Hashtable<String, TokenKind>();
         reserved.put(ABSTRACT.image(), ABSTRACT);
+        reserved.put(ASSERT.image(), ASSERT);
         reserved.put(BOOLEAN.image(), BOOLEAN);
+        reserved.put(BREAK.image(), BREAK);
+        reserved.put(BYTE.image(), BYTE);
+        reserved.put(CASE.image(), CASE);
+        reserved.put(CATCH.image(), CATCH);
         reserved.put(CHAR.image(), CHAR);
         reserved.put(CLASS.image(), CLASS);
+        reserved.put(CONST.image(), CONST);
+        reserved.put(CONTINUE.image(), CONTINUE);
+        reserved.put(DEFAULT.image(), DEFAULT);
+        reserved.put(DO.image(), DO);
+        reserved.put(DOUBLE.image(), DOUBLE);
         reserved.put(ELSE.image(), ELSE);
+        reserved.put(ENUM.image(), ENUM);
         reserved.put(EXTENDS.image(), EXTENDS);
-        reserved.put(FALSE.image(), FALSE);
+        reserved.put(FINAL.image(), FINAL);
+        reserved.put(FINALLY.image(), FINALLY);
+        reserved.put(FLOAT.image(), FLOAT);
+        reserved.put(FOR.image(), FOR);
+        reserved.put(GOTO.image(), GOTO);
         reserved.put(IF.image(), IF);
+        reserved.put(IMPLEMENTS.image(), IMPLEMENTS);
         reserved.put(IMPORT.image(), IMPORT);
         reserved.put(INSTANCEOF.image(), INSTANCEOF);
         reserved.put(INT.image(), INT);
+        reserved.put(INTERFACE.image(), INTERFACE);
+        reserved.put(LONG.image(), LONG);
+        reserved.put(NATIVE.image(), NATIVE);
         reserved.put(NEW.image(), NEW);
-        reserved.put(NULL.image(), NULL);
         reserved.put(PACKAGE.image(), PACKAGE);
         reserved.put(PRIVATE.image(), PRIVATE);
         reserved.put(PROTECTED.image(), PROTECTED);
         reserved.put(PUBLIC.image(), PUBLIC);
         reserved.put(RETURN.image(), RETURN);
+        reserved.put(SHORT.image(), SHORT);
         reserved.put(STATIC.image(), STATIC);
+        reserved.put(STRICTFP.image(), STRICTFP);
         reserved.put(SUPER.image(), SUPER);
+        reserved.put(SWITCH.image(), SWITCH);
+        reserved.put(SYNCHRONIZED.image(), SYNCHRONIZED);
         reserved.put(THIS.image(), THIS);
-        reserved.put(TRUE.image(), TRUE);
+        reserved.put(THROW.image(), THROW);
+        reserved.put(THROWS.image(), THROWS);
+        reserved.put(TRANSIENT.image(), TRANSIENT);
+        reserved.put(TRY.image(), TRY);
         reserved.put(VOID.image(), VOID);
+        reserved.put(VOLATILE.image(), VOLATILE);
         reserved.put(WHILE.image(), WHILE);
+        reserved.put(OPEN.image(), OPEN);
+        reserved.put(MODULE.image(), MODULE);
+        reserved.put(REQUIRES.image(), REQUIRES);
+        reserved.put(EXPORTS.image(), EXPORTS);
+        reserved.put(OPENS.image(), OPENS);
+        reserved.put(TO.image(), TO);
+        reserved.put(USES.image(), USES);
+        reserved.put(PROVIDES.image(), PROVIDES);
+        reserved.put(WITH.image(), WITH);
+        reserved.put(TRANSITIVE.image(), TRANSITIVE);
 
         // Prime the pump.
         nextCh();
@@ -96,10 +132,30 @@ class Scanner {
                     while (ch != '\n' && ch != EOFCH) {
                         nextCh();
                     }
-                } else if {
-			
-		} else {
-                    reportScannerError("Operator / is not supported in j--");
+                } else if (ch == '*') {
+                    nextCh();
+                    // runs until it finds "*/" or end of file
+                    while (true) {
+                        if (ch == '*') {
+                            nextCh();
+                            if (ch == '/') {
+                                nextCh();
+                                break;
+                            }
+                        }
+
+                        if (ch == EOFCH) {
+                            reportScannerError("Unclosed Comment");
+                            break;
+                        }
+                        nextCh();
+                    }
+                } else {
+                    if (ch == '=') {
+                        nextCh();
+                        return new TokenInfo(DIV_ASSIGN, line);
+                    }
+                    return new TokenInfo(DIV, line);
                 }
             } else {
                 moreWhiteSpace = false;
@@ -134,9 +190,23 @@ class Scanner {
             case ';':
                 nextCh();
                 return new TokenInfo(SEMI, line);
+            case '~':
+                nextCh();
+                return new TokenInfo(COMP, line);
             case '*':
                 nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(STAR_ASSIGN, line);
+                } 
                 return new TokenInfo(STAR, line);
+            case '%': 
+                nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(MOD_ASSIGN, line);
+                }
+                return new TokenInfo(MOD, line);
             case '+':
                 nextCh();
                 if (ch == '=') {
@@ -145,49 +215,103 @@ class Scanner {
                 } else if (ch == '+') {
                     nextCh();
                     return new TokenInfo(INC, line);
-                } else {
-                    return new TokenInfo(PLUS, line);
                 }
+                return new TokenInfo(PLUS, line);
             case '-':
                 nextCh();
-                if (ch == '-') {
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(MINUS_ASSIGN, line);
+                } else if (ch == '-') {
                     nextCh();
                     return new TokenInfo(DEC, line);
-                } else {
-                    return new TokenInfo(MINUS, line);
+                } else if (ch == '>') {
+                    nextCh();
+                    return new TokenInfo(LAMBDA, line);
                 }
+                return new TokenInfo(MINUS, line);
             case '=':
                 nextCh();
                 if (ch == '=') {
                     nextCh();
                     return new TokenInfo(EQUAL, line);
-                } else {
-                    return new TokenInfo(ASSIGN, line);
-                }
+                } 
+                return new TokenInfo(ASSIGN, line);
             case '>':
                 nextCh();
+                if (ch == '>') {
+                    nextCh();
+                    if (ch == '>') {
+                        nextCh();
+                        if (ch == '=') {
+                            nextCh();
+                            return new TokenInfo(URSHFT_ASSIGN, line);
+                        }
+                        return new TokenInfo(URSHFT, line);
+                    } else if (ch == '=') {
+                        nextCh();
+                        return new TokenInfo(RSHFT_ASSIGN, line);
+                    }
+                    return new TokenInfo(RSHFT, line);
+                } else if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(GE, line);
+                }
                 return new TokenInfo(GT, line);
             case '<':
                 nextCh();
-                if (ch == '=') {
+                if (ch == '<') {
+                    nextCh();
+                    if (ch == '=') {
+                        nextCh();
+                        return new TokenInfo(LSHFT_ASSIGN, line);
+                    }
+                    return new TokenInfo(LSHFT, line);
+                } else if (ch == '=') {
                     nextCh();
                     return new TokenInfo(LE, line);
-                } else {
-                    reportScannerError("Operator < is not supported in j--");
-                    return getNextToken();
-                }
+                } 
+                return new TokenInfo(LT, line);
             case '!':
                 nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(NE, line);
+                }
                 return new TokenInfo(LNOT, line);
             case '&':
                 nextCh();
                 if (ch == '&') {
                     nextCh();
                     return new TokenInfo(LAND, line);
-                } else {
-                    reportScannerError("Operator & is not supported in j--");
-                    return getNextToken();
+                } else if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(BAND_ASSIGN, line);
                 }
+                return new TokenInfo(BAND, line);
+            case '|':
+                nextCh();
+                if (ch == '|') {
+                    nextCh();
+                    return new TokenInfo(OR, line); 
+                } else if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(BOR_ASSIGN, line);
+                }
+                return new TokenInfo(BOR, line);
+            case '^':
+                nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(XOR_ASSIGN, line);
+                }
+                return new TokenInfo(XOR, line);
+            case '?':
+                nextCh();
+                return new TokenInfo(TERQ, line);
+            case ':':
+                nextCh();
+                return new TokenInfo(TERC, line);
             case '\'':
                 buffer = new StringBuffer();
                 buffer.append('\'');
