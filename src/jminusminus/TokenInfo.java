@@ -43,12 +43,11 @@ enum TokenKind {
     // Identifiers.
     IDENTIFIER("<IDENTIFIER>"),
 
+    // TODO: Already done -> INT_LITERAL, FLOAT_LITERAL, DOUBLE_LITERAL, NULL, FALSE, TRUE, STRING_LITERAL, 
+
     // Literals.
     CHAR_LITERAL("<CHAR_LITERAL>"), FALSE("false"), INT_LITERAL("<INT_LITERAL>"), NULL("null"),
-    STRING_LITERAL("<STRING_LITERAL>"), TRUE("true");
-
-    // Double Literals
-    
+    STRING_LITERAL("<STRING_LITERAL>"), DOUBLE_LITERAL("<DOUBLE_LITERAL>"), FLOAT_LITERAL("<FLOAT_LITERAL>"), LONG_LITERAL("<LONG_LITERAL>"), TRUE("true");
 
     // The token kind's string representation.
     private String image;

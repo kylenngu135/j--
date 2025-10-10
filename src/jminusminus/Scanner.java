@@ -145,7 +145,7 @@ class Scanner {
                         }
 
                         if (ch == EOFCH) {
-                            reportScannerError("Unclosed Comment");
+                            reportScannerError("Unenclosed Comment.");
                             break;
                         }
                         nextCh();
@@ -168,6 +168,43 @@ class Scanner {
                 return new TokenInfo(COMMA, line);
             case '.':
                 nextCh();
+                if (isDigit(ch)) {
+                    buffer = new StringBuffer();
+                    buffer.append('.');
+                    buffer.append(ch);
+                    nextCh();
+
+                    insertIntoBuffer(buffer);
+                    if (isExponent(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                        if (!(isDigit(ch) || isExpoSign(ch))) {
+                            reportScannerError("malformed floating-point number");
+                        } else if (isExpoSign(ch)) {
+                            buffer.append(ch);
+                            nextCh();
+                            if (!isDigit(ch)) {
+                                reportScannerError("malformed floating-point number");
+                            }
+                            buffer.append(ch);
+                            nextCh();
+                        }
+
+                        insertIntoBuffer(buffer);
+                    }
+
+                    if (isFloatLiteral(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                        return new TokenInfo(FLOAT_LITERAL, buffer.toString(), line);
+                    } else if (isDoubleLiteral(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                    return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+                } else if (!(isWhitespace(ch) || ch == EOFCH)) {
+                    reportScannerError("expected whitespace, found " + ch);
+                }
                 return new TokenInfo(DOT, line);
             case '[':
                 nextCh();
@@ -371,10 +408,114 @@ class Scanner {
             case '8':
             case '9':
                 buffer = new StringBuffer();
-                while (isDigit(ch)) {
-                    buffer.append(ch);
+                buffer.append(ch);
+                if (ch == '0') {
+                    nextCh();
+                    if (isHexIndicator(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                        if (!isHex(ch)) {
+                            reportScannerError("hexadecimal numbers must contain at least one hexadecimal digit");
+                        }
+                        while (isHex(ch)) {
+                            buffer.append(ch);
+                            nextCh();
+                        }
+                        
+                        if (ch == '.') {
+                            buffer.append(ch);
+                            nextCh();
+                            
+                            if (!(isHex(ch) || ch == 'p')) {
+                                reportScannerError("malformed floating-point literal");
+                            }
+                            while (isHex(ch)) {
+                                buffer.append(ch);
+                                nextCh();
+                            }
+                            
+                            if (ch != 'p') {
+                                reportScannerError("malformed floating-point literal");
+                            }
+                            
+                            buffer.append(ch);
+                            nextCh();
+                            if (!isDigit(ch)) {
+                                reportScannerError("malformed floating-point literal");
+                            }
+
+                            while(isDigit(ch)) {
+                                buffer.append(ch);
+                                nextCh();
+                            }
+
+                            if (isFloatLiteral(ch)) {
+                                buffer.append(ch);
+                                nextCh();
+                                
+                                return new TokenInfo(FLOAT_LITERAL, buffer.toString(), line);
+                            } else if (isDoubleLiteral(ch)) {
+                                buffer.append(ch);
+                                nextCh();
+                            }
+                            return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+                        }
+                    } 
+                } else {
                     nextCh();
                 }
+                insertIntoBuffer(buffer);
+                boolean isFloatingPoint = false; 
+                if (ch == '.') {
+                    isFloatingPoint = true;
+                    buffer.append(ch);
+                    nextCh();
+                    if (!(isDigit(ch) || isExponent(ch) || isFloatLiteral(ch) || isDoubleLiteral(ch) || ch == ';' || isWhitespace(ch))) {
+                        reportScannerError("malformed floating-point literal");
+                    }
+                    insertIntoBuffer(buffer);
+                } 
+
+                if (isExponent(ch)) {
+                    isFloatingPoint = true;
+                    buffer.append(ch);
+                    nextCh();
+
+                    if (isExpoSign(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                        if (!isDigit(ch)) {
+                            reportScannerError("malformed flointing-point literal");
+                        }
+                    }
+                    buffer.append(ch);
+                    nextCh();
+                    insertIntoBuffer(buffer);
+                } 
+
+                if (isFloatLiteral(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+
+                    return new TokenInfo(FLOAT_LITERAL, buffer.toString(), line);
+                } 
+
+                if (isDoubleLiteral(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+                    return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+                } 
+
+                if (isLongLiteral(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+                    return new TokenInfo(LONG_LITERAL, buffer.toString(), line);
+                }
+
+                if (isFloatingPoint) {
+                    return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+                }
+
                 return new TokenInfo(INT_LITERAL, buffer.toString(), line);
             default:
                 if (isIdentifierStart(ch)) {
@@ -468,9 +609,36 @@ class Scanner {
         System.err.println();
     }
 
+    private void insertIntoBuffer(StringBuffer buffer) {
+        while (isDigit(ch) || isUnderscore(ch)) {  
+            while (isDigit(ch)) {
+                buffer.append(ch);
+                nextCh();
+            }
+            if (isUnderscore(ch)) {
+                buffer.append(ch);
+                nextCh();
+                if (!isDigit(ch)) {
+                    reportScannerError("underscore isn't enclosed by numbers");
+                } else {
+                    buffer.append(ch);
+                    nextCh();
+                }
+            }
+        }
+    }
+
     // Returns true if the specified character is a digit (0-9), and false otherwise.
     private boolean isDigit(char c) {
         return (c >= '0' && c <= '9');
+    }
+
+    private boolean isUnderscore(char c) {
+        return c == '_';
+    }
+
+    private boolean isHex(char c) {
+        return isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
     // Returns true if the specified character is a whitespace, and false otherwise.
@@ -487,6 +655,30 @@ class Scanner {
     // otherwise.
     private boolean isIdentifierPart(char c) {
         return (isIdentifierStart(c) || isDigit(c));
+    }
+
+    private boolean isFloatLiteral(char c) {
+        return c == 'f' || c == 'F';
+    }
+
+    private boolean isDoubleLiteral(char c) {
+        return c == 'd' || c == 'D';
+    }
+
+    private boolean isLongLiteral(char c) {
+        return c == 'l' || c == 'L';
+    }
+
+    private boolean isHexIndicator(char c) {
+        return c == 'x' || c == 'X';
+    }
+
+    private boolean isExponent(char c) {
+        return c == 'e' || c == 'E';
+    }
+
+    private boolean isExpoSign(char c) {
+        return c == '+' || c == '-'; 
     }
 }
 
