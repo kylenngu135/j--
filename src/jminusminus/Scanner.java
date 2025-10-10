@@ -417,24 +417,18 @@ class Scanner {
                         if (!isHex(ch)) {
                             reportScannerError("hexadecimal numbers must contain at least one hexadecimal digit");
                         }
-                        while (isHex(ch)) {
-                            buffer.append(ch);
-                            nextCh();
-                        }
+                        insertIntoBufferHex(buffer);
                         
                         if (ch == '.') {
                             buffer.append(ch);
                             nextCh();
                             
-                            if (!(isHex(ch) || ch == 'p')) {
+                            if (!(isHex(ch) || isHexExpo(ch))) {
                                 reportScannerError("malformed floating-point literal");
                             }
-                            while (isHex(ch)) {
-                                buffer.append(ch);
-                                nextCh();
-                            }
+                            insertIntoBufferHex(buffer);
                             
-                            if (ch != 'p') {
+                            if (!isHexExpo(ch)) {
                                 reportScannerError("malformed floating-point literal");
                             }
                             
@@ -628,6 +622,25 @@ class Scanner {
         }
     }
 
+    private void insertIntoBufferHex(StringBuffer buffer) {
+        while (isHex(ch) || isUnderscore(ch)) {  
+            while (isHex(ch)) {
+                buffer.append(ch);
+                nextCh();
+            }
+            if (isUnderscore(ch)) {
+                buffer.append(ch);
+                nextCh();
+                if (!isHex(ch)) {
+                    reportScannerError("underscore isn't enclosed by numbers");
+                } else {
+                    buffer.append(ch);
+                    nextCh();
+                }
+            }
+        }
+    }
+
     // Returns true if the specified character is a digit (0-9), and false otherwise.
     private boolean isDigit(char c) {
         return (c >= '0' && c <= '9');
@@ -639,6 +652,10 @@ class Scanner {
 
     private boolean isHex(char c) {
         return isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
+    private boolean isHexExpo(char c) {
+        return c == 'p' || c == 'P';
     }
 
     // Returns true if the specified character is a whitespace, and false otherwise.
