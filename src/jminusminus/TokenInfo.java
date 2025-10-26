@@ -32,7 +32,7 @@ enum TokenKind {
     LAMBDA("->"), MINUS("-"), MINUS_ASSIGN("-="), PLUS("+"), PLUS_ASSIGN("+="), 
     STAR("*"), STAR_ASSIGN("*="), DIV("/"), DIV_ASSIGN("/="), MOD("%"), 
     MOD_ASSIGN("%="), BAND("&"), BAND_ASSIGN("&="), BOR("|"), BOR_ASSIGN("|="), 
-    LSHFT(">>"), LSHFT_ASSIGN(">>="), RSHFT("<<"), RSHFT_ASSIGN("<<="), XOR("^"), 
+    LSHFT("<<"), LSHFT_ASSIGN(">>="), RSHFT(">>"), RSHFT_ASSIGN("<<="), XOR("^"), 
     XOR_ASSIGN("^="), URSHFT(">>>"), URSHFT_ASSIGN(">>>="), COMP("~"),
 
 
