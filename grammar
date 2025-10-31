@@ -1,4 +1,4 @@
-// Copyright 2012- Bill Campbell, Swami Iyer and Bahar Akbal-Delibas.
+/ Copyright 2012- Bill Campbell, Swami Iyer and Bahar Akbal-Delibas.
 //
 // Syntactic grammar for j--, suitable for parsing by recursive descent.
 

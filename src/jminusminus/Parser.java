@@ -258,8 +258,15 @@ public class Parser {
                 mustBe(IDENTIFIER);
                 String name = scanner.previousToken().image();
                 ArrayList<JFormalParameter> params = formalParameters();
+                ArrayList<TypeName> exceptions = new ArrayList<>();
+                if (have(THROWS)) {
+                    do {
+                        exceptions.add(qualifiedIdentifier());
+                    } while (have(COMMA));
+                }
+
                 JBlock body = have(SEMI) ? null : block();
-                memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, body);
+                memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptions, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
@@ -390,11 +397,62 @@ public class Parser {
             } 
             JStatement statement = statement();
             return new JForStatement(line, init, test, update, statement);
-
-        /*
-        } else if (SWITCH) {
+        } else if (have(SWITCH)) {
             JExpression expr = parExpression();
-        */
+            mustBe(LCURLY); 
+            ArrayList<SwitchStatementGroup> stmt = new ArrayList<>();
+            while (!see(RCURLY)) {
+                ArrayList<JExpression> switchLabels = new ArrayList<>();
+                ArrayList<JStatement> block = new ArrayList<>();
+                while (see(CASE) || see(DEFAULT)) {
+                    if (have(CASE)) {
+                        switchLabels.add(expression());
+                    } else if (have(DEFAULT)) {
+                        switchLabels.add(null);
+                    }
+                    mustBe(TERC);
+                }
+                while (!see(CASE) && !see(RCURLY) && !see(DEFAULT)) {
+                    block.add(statement());
+                }
+
+                stmt.add(new SwitchStatementGroup(switchLabels, block));
+            }
+            /*
+            if (have(DEFAULT)) {
+                ArrayList<JExpression> switchLabels = new ArrayList<>();
+                ArrayList<JStatement> block = new ArrayList<>();
+                switchLabels.add(null);
+                mustBe(TERC);
+                while (!see(RCURLY)) {
+                    block.add(statement());
+                }
+                stmt.add(new SwitchStatementGroup(switchLabels, block));
+            }
+            */
+            mustBe(RCURLY);
+
+            return new JSwitchStatement(line, expr, stmt);
+        } else if (have(TRY)) {
+                JBlock tryBlock = block();
+                ArrayList<JFormalParameter> parameters = new ArrayList<>();
+                ArrayList<JBlock> catchBlocks = new ArrayList<>();
+                while (have(CATCH)) {
+                    mustBe(LPAREN);
+                    parameters.add(formalParameter());
+                    mustBe(RPAREN);
+                    catchBlocks.add(block());
+                }
+                JBlock finallyBlock = null;
+                if (have(FINALLY)) {
+                    finallyBlock = block();
+                }
+
+                return new JTryStatement(line, tryBlock, parameters, catchBlocks, finallyBlock);
+        } else if (have(THROW)) {
+            JExpression expr = expression();
+            mustBe(SEMI);
+            return new JThrowStatement(line, expr);
         } else {
             // Must be a statementExpression.
             JStatement statement = statementExpression();
@@ -681,6 +739,8 @@ public class Parser {
             expr.isStatementExpression = true;
         } else {
             reportParserError("Invalid statement expression; it does not have a side-effect");
+
+            System.exit(0);
         }
         return new JStatementExpression(line, expr);
     }
