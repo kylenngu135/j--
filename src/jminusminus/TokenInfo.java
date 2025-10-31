@@ -2,7 +2,7 @@
 
 package jminusminus;
 
-/**
+/**:
  * An enum of token kinds. Each entry in this enum represents the kind of a token along with its
  * image (string representation).
  */

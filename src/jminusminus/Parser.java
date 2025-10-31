@@ -354,6 +354,47 @@ public class Parser {
             JExpression test = parExpression();
             JStatement statement = statement();
             return new JWhileStatement(line, test, statement);
+        } else if (have(FOR)) {
+            ArrayList<JStatement> init = new ArrayList<>();
+            mustBe(LPAREN);
+            if (!have(SEMI)) {
+                if (seeLocalVariableDeclaration()) {
+                    JStatement var = forLocalVariableDeclarationStatement();
+                    if (have(TERC)) {
+                        JExpression expr = expression();
+                        mustBe(RPAREN);
+                        JStatement body = statement();
+                        return new JEnhancedForStatement(line, var, expr, body);
+                    }
+                    init.add(var);
+                } else {
+                    do {
+                        init.add(statementExpression());
+                    } while (have(COMMA));
+                }
+                mustBe(SEMI);
+            }
+            
+            JExpression test = null;
+            if (!have(SEMI)) {
+                test = expression();
+                mustBe(SEMI);
+            }
+            
+            ArrayList<JStatement> update = new ArrayList<>();
+            if(!have(RPAREN)) {
+                do {
+                    update.add(statementExpression());
+                } while (have(COMMA));
+                mustBe(RPAREN);
+            } 
+            JStatement statement = statement();
+            return new JForStatement(line, init, test, update, statement);
+
+        /*
+        } else if (SWITCH) {
+            JExpression expr = parExpression();
+        */
         } else {
             // Must be a statementExpression.
             JStatement statement = statementExpression();
@@ -361,7 +402,7 @@ public class Parser {
             return statement;
         }
     }
-
+    
     /**
      * Parses and returns a list of formal parameters.
      *
@@ -431,6 +472,13 @@ public class Parser {
         Type type = type();
         ArrayList<JVariableDeclarator> vdecls = variableDeclarators(type);
         mustBe(SEMI);
+        return new JVariableDeclaration(line, vdecls);
+    }
+
+    private JVariableDeclaration forLocalVariableDeclarationStatement() {
+        int line = scanner.token().line();
+        Type type = type();
+        ArrayList<JVariableDeclarator> vdecls = variableDeclarators(type);
         return new JVariableDeclaration(line, vdecls);
     }
 
@@ -654,7 +702,7 @@ public class Parser {
      * Parses an assignment expression and returns an AST for it.
      *
      * <pre>
-     *   assignmentExpression ::= conditionalAndExpression
+     *   assignmentExpression ::= conditionalOrExpression
      *                                [ ( ASSIGN | PLUS_ASSIGN ) assignmentExpression ]
      * </pre>
      *
@@ -662,7 +710,7 @@ public class Parser {
      */
     private JExpression assignmentExpression() {
         int line = scanner.token().line();
-        JExpression lhs = conditionalOrExpression();
+        JExpression lhs = ternaryExpression();
         if (have(ASSIGN)) {
             return new JAssignOp(line, lhs, assignmentExpression());
         } else if (have(PLUS_ASSIGN)) {
@@ -693,13 +741,16 @@ public class Parser {
     }
 
     private JExpression ternaryExpression() {
-        (seeCast()) {
-            mustBe(LPAREN);
-            boolean isBasicType = seeBasicType();
-            Type type = type();
-            mustBe(RPAREN);
-            JExpression expr = isBasicType ? unaryExpression() : simpleUnaryExpression();
-            return new JCastOp(line, type, expr);
+        int line = scanner.token().line();
+        JExpression lhs = conditionalOrExpression();
+        if (have(TERQ)) {
+            JExpression option1 = conditionalOrExpression();
+            mustBe(TERC);
+            JExpression option2 = conditionalOrExpression();
+
+            return new JTernaryOp(line, lhs, option1, option2);
+        }
+        return lhs;
     }
 
     /**
@@ -1306,9 +1357,6 @@ public class Parser {
         scanner.returnToPosition();
         return result;
     }
-
-    // TERNARY OPERATOR
-
 
     // Returns true if we are looking at a cast (basic or reference), and false otherwise.
     private boolean seeCast() {
