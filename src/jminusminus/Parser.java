@@ -274,8 +274,15 @@ public class Parser {
                     mustBe(IDENTIFIER);
                     String name = scanner.previousToken().image();
                     ArrayList<JFormalParameter> params = formalParameters();
+                    ArrayList<TypeName> exceptions = new ArrayList<>();
+                    if (have(THROWS)) {
+                        do {
+                            exceptions.add(qualifiedIdentifier());
+                        } while (have(COMMA));
+                    }
+
                     JBlock body = have(SEMI) ? null : block();
-                    memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, body);
+                    memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptions, body);
                 } else {
                     // A field.
                     memberDecl = new JFieldDeclaration(line, mods, variableDeclarators(type));
@@ -418,18 +425,6 @@ public class Parser {
 
                 stmt.add(new SwitchStatementGroup(switchLabels, block));
             }
-            /*
-            if (have(DEFAULT)) {
-                ArrayList<JExpression> switchLabels = new ArrayList<>();
-                ArrayList<JStatement> block = new ArrayList<>();
-                switchLabels.add(null);
-                mustBe(TERC);
-                while (!see(RCURLY)) {
-                    block.add(statement());
-                }
-                stmt.add(new SwitchStatementGroup(switchLabels, block));
-            }
-            */
             mustBe(RCURLY);
 
             return new JSwitchStatement(line, expr, stmt);

@@ -153,9 +153,20 @@ class JCompilationUnit extends JAST {
      * {@inheritDoc}
      */
     public JAST analyze(Context context) {
+        int publicCount = 0;
+
         for (JAST typeDeclaration : typeDeclarations) {
-            typeDeclaration.analyze(this.context);
+            JClassDeclaration classes = (JClassDeclaration) typeDeclaration.analyze(this.context);
+            ArrayList<String> typeDeclMods = classes.getMods();
+            if (typeDeclMods.contains(TokenKind.PUBLIC.image())) {
+                publicCount++;
+            }
         }
+
+        if (publicCount > 1) {
+                JAST.compilationUnit.reportSemanticError(line, "Only one public class per source file is allowed.");
+        }
+
         return this;
     }
 

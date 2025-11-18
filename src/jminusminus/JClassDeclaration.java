@@ -289,4 +289,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
         output.addNoArgInstruction(RETURN);
     }
+
+    public ArrayList<String> getMods() {
+        return this.mods;
+    }
 }
