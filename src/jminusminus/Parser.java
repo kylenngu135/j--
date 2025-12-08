@@ -364,6 +364,12 @@ public class Parser {
             }
         } else if (have(SEMI)) {
             return new JEmptyStatement(line);
+        } else if (have(DO)) {
+            JStatement statement = statement();
+            mustBe(WHILE);
+            JExpression test = parExpression();
+            mustBe(SEMI);
+            return new JDoStatement(line, statement, test);
         } else if (have(WHILE)) {
             JExpression test = parExpression();
             JStatement statement = statement();

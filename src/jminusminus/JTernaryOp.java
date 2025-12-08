@@ -21,12 +21,44 @@ class JTernaryOp extends JExpression {
     }
 
     public JTernaryOp analyze(Context context) {
-        // TODO
-        return null;
+        condition = (JExpression) condition.analyze(context);
+
+        if (condition.type() != Type.BOOLEAN) {
+            JAST.compilationUnit.reportSemanticError(line, "Ternary condition must be boolean");
+        }
+
+        option1 = (JExpression) option1.analyze(context);
+        option2 = (JExpression) option2.analyze(context);
+
+        Type t1 = option1.type();
+        Type t2 = option2.type();
+
+        if (!t1.isJavaAssignableFrom(t2) && !t2.isJavaAssignableFrom(t1)) {
+            JAST.compilationUnit.reportSemanticError(line, "Incompatible types in ternary operator: %s and %s", t1, t2);
+        }
+
+        if (t2.isJavaAssignableFrom(t1)) {
+            this.type = t2;
+        } else {
+            this.type = t1;
+        }
+
+        return this;
     }
 
     public void codegen(CLEmitter output) {
-        // TODO
+        String elseLabel = output.createLabel();
+        String endLabel = output.createLabel();
+
+        condition.codegen(output, elseLabel, false);
+
+        option1.codegen(output);
+        output.addBranchInstruction(GOTO, endLabel);
+
+        output.addLabel(elseLabel);
+        option2.codegen(output);
+
+        output.addLabel(endLabel);
     }
 
     public void toJSON(JSONElement json) {

@@ -3,9 +3,3 @@ public class DoubleClasses {
         System.out.println("test1");
     }
 }
-
-public class DoubleClasses2 {
-    public static void other() {
-        System.out.println("test2");
-    }
-}

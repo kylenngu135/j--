@@ -202,8 +202,6 @@ class Scanner {
                         nextCh();
                     }
                     return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
-                } else if (!(isWhitespace(ch) || ch == EOFCH)) {
-                    reportScannerError("expected whitespace, found " + ch);
                 }
                 return new TokenInfo(DOT, line);
             case '[':
@@ -518,7 +516,15 @@ class Scanner {
                         buffer.append(ch);
                         nextCh();
                     }
+
+                    if (buffer.toString().equals("true")) {
+                        return new TokenInfo(TRUE, buffer.toString(), line);
+                    } else if (buffer.toString().equals("false")) {
+                        return new TokenInfo(FALSE, buffer.toString(), line);
+                    }
+
                     String identifier = buffer.toString();
+
                     if (reserved.containsKey(identifier)) {
                         return new TokenInfo(reserved.get(identifier), line);
                     } else {

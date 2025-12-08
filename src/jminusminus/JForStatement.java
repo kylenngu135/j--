@@ -44,7 +44,18 @@ class JForStatement extends JStatement {
      * {@inheritDoc}
      */
     public JForStatement analyze(Context context) {
-        // TODO
+        
+        for (int i = 0; i < init.size(); i++) 
+            init.set(i, (JStatement) init.get(i).analyze(context));
+
+        condition = (JExpression) condition.analyze(context);
+        condition.type().mustMatchExpected(line(), Type.BOOLEAN);
+
+        for (int i =0; i < update.size(); i++)
+            update.set(i, (JStatement) update.get(i).analyze(context));
+
+        body = (JStatement) body.analyze(context);
+
         return this;
     }
 
@@ -52,7 +63,22 @@ class JForStatement extends JStatement {
      * {@inheritDoc}
      */
     public void codegen(CLEmitter output) {
-        // TODO
+        String start = output.createLabel(); 
+        String test = output.createLabel();
+        String out = output.createLabel();
+
+        for (JStatement stmt : init)
+            stmt.codegen(output);
+
+        output.addBranchInstruction(GOTO, test);
+        output.addLabel(start);
+        body.codegen(output);
+
+        for (JStatement stmt : update)
+            stmt.codegen(output);
+
+        output.addLabel(test);
+        condition.codegen(output, start, true);
     }
 
     /**
